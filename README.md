@@ -121,3 +121,75 @@ Perbedaannya:
 Model (parameter Controller) → alat untuk mengirim data ke view.
 Model (class seperti Product) → representasi data dalam program.
 Folder model → tempat penyimpanan class data tersebut.
+
+Latihan 2: Navigasi Multi-Halaman & Layout Sederhana
+Tugas & Eksperimen
+
+Eksperimen 1: Fragment yang Tidak Ada
+1.	Di template mana saja, ubah referensi fragment menjadi nama yang tidak ada:
+<div th :replace="~{fragments/layout :: navbar-yang-salah}"></div>
+1.	Jalankan dan buka halaman tersebut.
+
+Apakah error? [Ya/Tidak] Ya Erro r
+Erro r message:
+Whitelabel Error Page
+This application has no explicit mapping for /error, so you are seeing this as a fallback.
+Wed Feb 18 14:59:42 WIB 2026
+There was an unexpected error (type=Internal Server Error, status=500).
+Kesimpulan: Jika nama fragment salah, Thymeleaf akan menampilkan error (HTTP 500 – Internal Server Error), karena Thymeleaf tidak dapat menemukan fragment yang dimaksud sehingga proses render halaman gagal.
+
+Eksperimen 2: Static Resource Path
+1.	Coba hapus th: dari href CSS:
+<!-- Dari: -->
+<link rel="stylesheet" th :href="@{/css/style.css}">
+<!-- Menjadi: -->
+<link rel="stylesheet" href="/css/style.css">
+      Jalankan dan buka halaman. Apakah CSS masih ter-load?
+      CSS masih bekerja? [Ya/Tidak] Ya Masih Bekerja
+      Ringkasan: CSS tetap ter-load karena file style.css memang berada pada folder static/css,
+      sehingga masih bisa diakses langsung melalui path /css/style.css. Dalam kondisi aplikasi
+      berjalan di root context (misalnya http://localhost:8080), cara ini tetap berhasil.
+      2. Sekarang coba path yang salah:
+<link rel="stylesheet" th :href="@{/css/tidak-ada.css}">
+Apakah halaman error?      [Ya/Tidak] Tidak
+Apakah CSS diterapkan?     [Ya/Tidak] Tidak
+Ringkasan: Halaman tetap bisa ditampilkan karena kesalahan file CSS tidak memengaruhi proses render template Thymeleaf. Namun, karena file tidak-ada.css memang tidak tersedia, maka browser tidak dapat memuat CSS tersebut sehingga gaya tidak diterapkan.
+Kesimpulan: th:href=@{} lebih baik karena Thymeleaf akan menyesuaikan path secara otomatis sesuai dengan context path aplikasi. Cara ini lebih aman dan fleksibel, terutama jika aplikasi tidak dijalankan di root (/), misalnya dijalankan dengan nama project tertentu.
+Jika file CSS tidak ada, halaman tetap dapat dibuka, tetapi tampilan tidak akan menggunakan CSS tersebut karena browser tidak menemukan file yang dimaksud.
+
+Pertanyaan Refleksi:
+1. Apa keuntungan menggunakan Thymeleaf Fragment untuk navbar dan footer?
+Keuntungan utamanya adalah efisiensi dan konsistensi.
+Dengan fragment, navbar dan footer cukup dibuat satu kali saja di file terpisah. Setelah itu, semua halaman tinggal memanggilnya. Jika suatu saat kita ingin mengubah isi navbar atau footer, kita cukup mengubah satu file saja. Semua halaman otomatis ikut berubah.
+Selain itu, cara ini membuat kode lebih rapi dan tidak berulang-ulang. Struktur proyek juga lebih terorganisir karena bagian layout dipisahkan dari konten halaman.
+
+2. Apa bedanya file di static/ dan templates/? Kenapa CSS ada di static/ bukan templates/?
+Folder templates/ berisi file HTML yang diproses oleh Thymeleaf di server sebelum dikirim ke browser. Artinya, file di dalamnya bisa menggunakan atribut seperti th:text, th:each, dan lain-lain.
+Sedangkan folder static/ berisi file yang langsung dikirim ke browser tanpa diproses oleh Thymeleaf. Contohnya adalah CSS, JavaScript, gambar, dan file statis lainnya.
+CSS diletakkan di static/ karena CSS tidak perlu diproses oleh Thymeleaf. Browser cukup mengambil file tersebut dan menerapkannya ke halaman. Jika CSS diletakkan di templates/, maka file itu tidak akan bisa diakses langsung sebagai resource statis.
+
+3. Apa yang dimaksud dengan th:replace dan bagaimana bedanya dengan th:insert?
+Hint: coba ganti th:replace jadi th:insert dan inspect element di browser
+th:replace adalah perintah untuk mengganti elemen yang ada dengan isi fragment.
+Contohnya:
+<div th :replace="~{fragments/layout :: navbar}"></div>
+Artinya, <div> tersebut akan diganti sepenuhnya oleh isi fragment navbar.
+Sedangkan th:insert hanya menyisipkan isi fragment ke dalam elemen yang sudah ada.
+Jika kita ubah menjadi:
+<div th :insert="~{fragments/layout :: navbar}"></div>
+Maka <div>-nya tetap ada, dan isi navbar akan berada di dalam <div> tersebut.
+Perbedaannya bisa terlihat saat inspect element di browser:
+th :replace → tag asli hilang, diganti fragment.
+th :insert → tag asli tetap ada, fragment masuk ke dalamnya
+
+4. Kenapa kita pakai @{} untuk URL di Thymeleaf, bukan langsung tulis path?
+@{} digunakan agar Thymeleaf bisa menyesuaikan URL dengan context path aplikasi secara otomatis Jika kita menulis langsung: href="/products" itu hanya aman jika aplikasi berjalan di root, misalnya http://localhost:8080. Namun jika aplikasi dijalankan dengan context path tertentu, misalnya: http://localhost:8080/app maka path manual bisa menjadi salah. Dengan @{}: th:href="@{/products}" Thymeleaf akan menyesuaikan URL secara otomatis sesuai lokasi aplikasi dijalankan. Jadi lebih aman, fleksibel, dan tidak perlu diubah jika deployment berubah.
+
+5. Perhatikan bahwa ProductController inject ProductService melalui Constructor Injection (konsep dari Week 3). Apa jadinya kalau Controller tidak pakai DI dan langsung new ProductService() di dalam Controller?
+Jika Controller langsung membuat objek sendiri dengan new ProductService(), maka Controller menjadi terlalu bergantung pada implementasi tersebut. Ini disebut tight coupling.
+Akibatnya:
+•	Sulit melakukan pengujian (testing), karena kita tidak bisa dengan mudah mengganti ProductService dengan versi mock.
+•	Tidak fleksibel jika ingin mengganti implementasi service.
+•	Tidak mengikuti prinsip dasar Spring, yaitu IoC (Inversion of Control).
+Dengan Dependency Injection melalui constructor, Spring yang akan mengatur pembuatan dan pengelolaan objek. Controller hanya menerima dependensi yang sudah disiapkan. Ini membuat kode lebih bersih, lebih mudah diuji, dan lebih sesuai dengan praktik pengembangan yang baik.
+

@@ -6,6 +6,9 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -55,6 +58,43 @@ public class ProductService {
     public long countByCategory(String category) {
         return products.stream()
                 .filter(p -> p.getCategory().equalsIgnoreCase(category))
+                .count();
+    }
+
+    public long getTotalProducts() {
+        return products.size();
+    }
+
+    public Map<String, Integer> getTotalProductsPerCategory() {
+        return products.stream()
+                .collect(Collectors.groupingBy(
+                        Product::getCategory,
+                        Collectors.summingInt(p -> 1)
+                ));
+    }
+
+    public Product getMostExpensiveProduct() {
+        return products.stream()
+                .max(Comparator.comparing(Product::getPrice))
+                .orElse(null);
+    }
+
+    public Product getCheapestProduct() {
+        return products.stream()
+                .min(Comparator.comparing(Product::getPrice))
+                .orElse(null);
+    }
+
+    public double getAveragePrice() {
+        return products.stream()
+                .mapToDouble(Product::getPrice)
+                .average()
+                .orElse(0);
+    }
+
+    public long getLowStockCount() {
+        return products.stream()
+                .filter(p -> p.getStock() < 20)
                 .count();
     }
 }

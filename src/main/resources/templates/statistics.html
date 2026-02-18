@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${title}">Statistik Produk</title>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/layout :: navbar}"></div>
+
+<div class="container main-content mt-4">
+
+    <h2>Statistik Produk</h2>
+
+    <ul class="list-group mb-3">
+        <li class="list-group-item">
+            Total Produk: <strong th:text="${totalProducts}"></strong>
+        </li>
+        <li class="list-group-item">
+            Rata-rata Harga:
+            <strong th:text="'Rp ' + ${#numbers.formatDecimal(averagePrice, 0, 'COMMA', 0, 'POINT')}"></strong>
+        </li>
+        <li class="list-group-item">
+            Produk Stok < 20:
+            <strong th:text="${lowStockCount}"></strong>
+        </li>
+    </ul>
+
+    <h5>Total Produk per Kategori</h5>
+    <ul class="list-group mb-3">
+        <li class="list-group-item"
+            th:each="entry : ${totalPerCategory}">
+            <span th:text="${entry.key}"></span> :
+            <strong th:text="${entry.value}"></strong>
+        </li>
+    </ul>
+
+    <h5>Produk Termahal</h5>
+    <p>
+        <span th:text="${mostExpensive.name}"></span> -
+        <strong th:text="'Rp ' + ${#numbers.formatDecimal(mostExpensive.price, 0, 'COMMA', 0, 'POINT')}"></strong>
+    </p>
+
+    <h5>Produk Termurah</h5>
+    <p>
+        <span th:text="${cheapest.name}"></span> -
+        <strong th:text="'Rp ' + ${#numbers.formatDecimal(cheapest.price, 0, 'COMMA', 0, 'POINT')}"></strong>
+    </p>
+
+</div>
+
+<!-- Pakai fragment footer -->
+<div th:replace="~{fragments/layout :: footer}"></div>
+
+</body>
+</html>
